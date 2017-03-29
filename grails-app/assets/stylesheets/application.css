@@ -1,0 +1,52 @@
+/*
+* This is a manifest file that'll be compiled into application.css, which will include all the files
+* listed below.
+*
+* Any CSS file within this directory can be referenced here using a relative path.
+*
+* You're free to add application-wide styles to this file and they'll appear at the top of the
+* compiled file, but it's generally better to create a new file per style scope.
+*
+*= require bootstrap
+*= require grails
+*= require main
+*= require mobile
+*= require_self
+*/
+.deleteActor {
+    margin-top: -4px;
+}
+
+.btn{
+    text-decoration: none !important;
+}
+
+.alert {
+    margin-top: 20px;
+}
+
+img{
+    max-width: 100%;
+}
+
+.actorImg{
+    width: 50px;
+    height: 70px;
+}
+
+.marginTop10{
+    margin-top: 10px;
+}
+
+.spinner{
+    margin-right: 20px;
+    margin-top: 9px;
+}
+
+a.navbar-brand {
+    padding-top: 8px;
+}
+
+.nav a:visited {
+    color: white;
+}
