@@ -1,7 +1,7 @@
 Grails 3 application to learn how to test 
 ===========================
 
-The Grails 3 application created to learn how to test is a little web to serve streaming video. The app allow to users to see its favorites series. An administrator can manage the series and the episodes. 
+The Grails 3 application created to learn how to test is a little web to serve streaming video. The app allows users to see their favorites series. An administrator can manage the series and the episodes. 
 You can find:
 + Unit test
 + Integration test
