@@ -21,5 +21,33 @@ package es.greach.functional.pages.serie
 import geb.Page
 
 class ShowSeriePage extends Page {
-    //TODO complete me
+
+    static at = {
+        $("h1.marginTop10").text() && $("[for='channel']").isDisplayed()
+    }
+
+    static content = {
+        valueForLabel{ label-> $("[for='${label}'] + div p").text().trim() }
+
+        serieName { $('h1').text() }
+        serieChannel{ valueForLabel('channel') }
+        serieReleaseDate{ valueForLabel('releaseDate') }
+        actors (required: false){ $('h3')*.text()*.trim() }
+
+
+        cover { $("#cover") }
+
+        episodesTable (required: false) { $("#datatable-episodesTable") }
+        episodes (required: false) { episodesTable.find('tbody > tr') }
+
+        episodesId (required: false) { episodes.find('td:nth-child(1)')?.text() }
+        episodesTitle (required: false) { episodes.find('td:nth-child(2)')?.text() }
+        episodesSeason (required: false) { episodes.find('td:nth-child(3)')?.text() }
+        episodesNumber (required: false) { episodes.find('td:nth-child(4)')?.text() }
+
+        editButton (required: false) { $("#editSerieButtonsDiv a:nth-child(1)") }
+        addEpisodeButton (required: false) { $("#editSerieButtonsDiv a:nth-child(2)") }
+        deleteButton (required: false) { $("#editSerieButtonsDiv a:nth-child(3)") }
+
+    }
 }

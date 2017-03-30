@@ -16,33 +16,35 @@
  * limitations under the License.
  *
  */
-package es.greach.integration.domain
+package es.greach.domain
 
 import es.greach.Episode
 import es.greach.Serie
-import grails.test.mixin.integration.Integration
-import grails.transaction.Rollback
+import grails.buildtestdata.mixin.Build
+import grails.test.mixin.Mock
+import grails.test.mixin.TestFor
 import spock.lang.Specification
 import spock.lang.Unroll
 
-@Integration
-@Rollback
-class EpisodeIntegrationSpec extends Specification {
+@Build([Serie])
+@TestFor(Episode)
+class EpisodeUnitSpec extends Specification {
 
     @Unroll
     void "Validates an Episode's instance that must be valid: #valid, with params: #params"() {
-        given: 'an episode is built with some params'
+        given: 'an episode built with some params'
         Episode episode = new Episode(params)
 
-        and: 'add a serie if it is specified'
-        Serie serie
+        and: 'add serie if it is specified'
         if (addSerie) {
-            serie = Serie.build(name: UUID.randomUUID())
+            Serie serie = Serie.build()
             episode.serie = serie
         }
 
         expect: 'the episode is valid or not'
         episode.validate() == valid
+
+        and: 'and if it is valid, save it and check the params '
         if(valid){
             assert episode.save()
             params.each{ String key, value->

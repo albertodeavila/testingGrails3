@@ -18,36 +18,51 @@
  */
 package es.greach.controller
 
-import es.greach.SerieController
+import es.greach.*
+import grails.buildtestdata.mixin.Build
 import grails.test.mixin.TestFor
-import spock.lang.Ignore
+import org.springframework.mock.web.MockMultipartFile
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
+@Build([Serie, Actor])
 @TestFor(SerieController)
 class SerieControllerUnitSpec extends Specification {
 
+    @Shared Serie serieToUpdate
+    @Shared String formatDate = 'MM/dd/yyyy'
 
-    /*************************************
-            CONTROLLER UNIT EXERCISE 2
-     **************************************/
-    @Ignore("Until start work on controller unit exercise 2")
+    def setup(){
+        serieToUpdate = Serie.build()
+        defineBeans {
+            serieService(SerieService)
+        }
+    }
+
+
     @Unroll
     void "delete a serie"(){
         given: 'create a serie'
-        //TODO complete me
+        Serie serie = Serie.build()
 
         and: 'mock the service'
-        //TODO complete me
+        controller.serieService = Mock(SerieService)
+        controller.serieService.delete(_) >> (errorDeleting ? serie : null)
 
         and: 'send the id to the action'
-        //TODO complete me
+        controller.params.serieId = sendSerieId ? serie.id : ''
 
         when: 'call to the action to delete the serie'
-        //TODO complete me
+        controller.delete()
 
-        then: 'check that the response redirect to the /serie/index and if there what flash message or error return'
-        //TODO complete me
+        then: 'check if the response is redirected to "/" and if success message or error is returned'
+        controller
+
+        controller.response.redirectedUrl == '/serie/index'
+        if(!sendSerieId) assert controller.flash.error == 'serie.delete.notFound'
+        else if(errorDeleting) assert controller.flash.error == 'serie.delete.error'
+        else assert controller.flash.message == 'serie.delete.ok'
 
         where:
         sendSerieId | errorDeleting
@@ -57,23 +72,29 @@ class SerieControllerUnitSpec extends Specification {
         false       | true
     }
 
-    /*************************************
-            CONTROLLER UNIT EXERCISE 3
-     **************************************/
-    @Ignore("Until start work on controller unit exercise 3")
     @Unroll
     void "#action a serie sending the id #sendSerieId about a serie that exist #existsSerie"(){
         given: 'create a serie'
-        //TODO complete me
+        Serie serie = Serie.build()
 
         and: 'send the id to the action'
-        //TODO complete me
+        controller.params.serieId = sendSerieId ? (existSerie ? serie.id : -1L) : ''
 
         when: 'call to the action to show/update the serie'
-        //TODO complete me
+        controller."${action}"()
 
         then: 'check the response, the flash message, the view rendered and the model'
-        //TODO complete me
+        controller
+        if(!sendSerieId || !existSerie){
+            assert controller.response.redirectedUrl == '/serie/index'
+        }else{
+            assert view == "/serie/${viewRendered}"
+            assert model.serie == serie
+        }
+
+        if(!sendSerieId) assert controller.flash.error == "serie.${action}.notFound"
+        else if(!existSerie) assert controller.flash.error == "serie.${action}.notExists"
+        else assert !controller.flash
 
         where:
         action   | viewRendered | sendSerieId | existSerie
@@ -87,58 +108,77 @@ class SerieControllerUnitSpec extends Specification {
         'update' | 'save'       | false       | true
     }
 
-    /*************************************
-             CONTROLLER UNIT EXERCISE 4
-     **************************************/
-    @Ignore("Until start work on controller unit exercise 4")
     void "show the create form in the serie controller"(){
         when: 'call to the create action'
-        //TODO complete me
+        controller.create()
 
         then: 'the view is rendered'
-        //TODO complete me
+        view == '/serie/save'
     }
 
-    /*************************************
-            CONTROLLER UNIT EXERCISE 5
-     **************************************/
-    @Ignore("Until start work on controller unit exercise 5")
     void "show index in the serie controller"(){
         given: 'create 12 series'
-        //TODO complete me
+        12.times{
+            Serie.build()
+        }
 
         when: 'call to the index action'
-        //TODO complete me
+        Map result = controller.index()
 
         then: 'check the returned map'
-        //TODO complete me
+        result
+        result.series == Serie.list().collate(3)
+        result.rows == Math.ceil(Serie.count() / 3)
     }
 
-    /*************************************
-            CONTROLLER UNIT EXERCISE 6
-     **************************************/
-    @Ignore("Until start work on controller unit exercise 6")
     @Unroll
     void "save a serie"(){
-        given: 'override the message method to return '
-        //TODO complete me
+        given: 'override the message method to return'
+        controller.metaClass.message { Map args->
+            args.code == 'default.date.format' ? 'MM/dd/yyyy' : args.code
+        }
 
         and: 'mock the ActorService to return actors'
-        //TODO complete me
+        controller.actorService = Mock(ActorService)
+        controller.actorService.findOrCreateActorByImdbId(_) >> {List <String> imdbIds ->
+            List<Actor> actors = []
+            imdbIds.size().times {
+                actors << Actor.build()
+            }
+            actors
+        }
 
         and: 'send the data to the controller'
-        //TODO complete me
+        controller.params.name = name
+        controller.params.channel = channel
+        controller.params.releaseDate = releaseDate
+        controller.params.actors = actors
+        if(sendCover) {
+            controller.params.cover = new MockMultipartFile('image', 'myImage.jpg', 'image/jpeg', 123 as byte[])
+        }
+        controller.params.serieId = sendSerieId ? serieToUpdate.id : null
 
         when: 'call to the save action'
-        //TODO complete me
+        controller.save()
 
-
-        then: 'check the action redirect to the /serie/index and contains in the flash the result expected'
-        //TODO complete me
+        then: 'check if the action is redirected to "/" and contains in the flash the expected result'
+        controller.response.redirectedUrl == '/serie/index'
+        controller.flash == result
 
         where:
         name | channel | releaseDate                    | actors            | sendCover | sendSerieId || result
         null | null    | null                           | null              | false     | false       || [error: 'serie.save.error']
-        //TODO complete me
+        'a'  | null    | null                           | null              | false     | false       || [error: 'serie.save.error']
+        'a'  | 'b'     | null                           | null              | false     | false       || [error: 'serie.save.error']
+        'a'  | 'b'     | 'c'                            | null              | false     | false       || [error: 'serie.save.error']
+        'a'  | 'b'     | 1                              | null              | false     | false       || [error: 'serie.save.error']
+        'a'  | 'b'     | new Date().format(formatDate)  | null              | false     | false       || [message: 'serie.save.ok']
+        1    | 'b'     | new Date().format(formatDate)  | null              | false     | false       || [message: 'serie.save.ok']
+        'a'  | 2       | new Date().format(formatDate)  | null              | false     | false       || [message: 'serie.save.ok']
+        'a'  | 2       | new Date().format(formatDate)  | 'asdf'            | false     | false       || [message: 'serie.save.ok']
+        'a'  | 2       | new Date().format(formatDate)  | ['asdf', 'asdf2'] | false     | false       || [message: 'serie.save.ok']
+        'a'  | 2       | new Date().format(formatDate)  | ['asdf', 'asdf2'] | true      | false       || [message: 'serie.save.ok']
+        'a'  | 2       | new Date().format(formatDate)  | ['asdf', 'asdf2'] | false     | true        || [message: 'serie.save.ok']
+        'a'  | 2       | new Date().format(formatDate)  | ['asdf', 'asdf2'] | true      | true        || [message: 'serie.save.ok']
     }
 }

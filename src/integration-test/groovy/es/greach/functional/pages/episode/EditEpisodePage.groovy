@@ -16,18 +16,19 @@
  * limitations under the License.
  *
  */
-package es.greach.functional.pages.serie
+package es.greach.functional.pages.episode
 
+import es.greach.functional.pages.utils.MessagesModule
 import geb.Page
 import grails.util.Holders
 
-class EditSeriePage extends Page {
-
+class EditEpisodePage extends Page{
     static at = {
-        $("h1").text() == Holders.applicationContext.getBean("messageSource").getMessage("serie.update.label", null, null)
+        $("h1").text() == Holders.applicationContext.getBean("messageSource").getMessage("episode.update.label", null, null)
     }
 
     static content = {
-        form { module SerieFormModule }
+        form { module EpisodeFormModule }
+        messages { module MessagesModule }
     }
 }

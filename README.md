@@ -8,12 +8,21 @@ You can find:
 + Functional test using Geb 
 + Functional test to attack an API 
 
+You can find the slides [in Slideshare](https://www.slideshare.net/AlbertoDevilaHernnde/testing-grails-3-the-goob-unit-the-bad-integration-and-the-ugly-functional)
+
+Branches
+--------
+In the repo there are two branches:
+* Master branch contains all samples and solutions about the exercise in the workshop
+* Exercises branch contains all the exercises to complete the workshop
 
 Support
 -------
 
-* If you've got questions or issues, report them [here in GitHub](https://github.com/albertodeavila/testingGrails3/issues).
-
+If you've got questions or issues, you can:
+* Report them [here in GitHub](https://github.com/albertodeavila/testingGrails3/issues).
+* [Send me an email](mailto:alberto.deavila.hernandez@gmail.com)
+* Write me on [Twitter](https://twitter.com/alberto_deavila)
 
 Contributors
 ------------

@@ -18,18 +18,20 @@
  */
 package es.greach.service
 
+import es.greach.Actor
 import es.greach.Serie
 import es.greach.SerieService
 import grails.buildtestdata.mixin.Build
 import grails.test.mixin.TestFor
-import spock.lang.Ignore
+import org.springframework.mock.web.MockMultipartFile
+import org.springframework.web.multipart.MultipartFile
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.nio.file.FileAlreadyExistsException
 
-@Build([Serie])
+@Build([Serie, Actor])
 @TestFor(SerieService)
 class SerieServiceUnitSpec extends Specification {
 
@@ -39,70 +41,64 @@ class SerieServiceUnitSpec extends Specification {
         serieToUpdate = Serie.build()
     }
 
-    /*************************************
-            SERVICE UNIT EXERCISE 1
-     **************************************/
-    @Ignore("Until start work on service unit exercise 1")
     @Unroll
     void "Delete a serie"() {
         given: 'build a serie or not'
-        //TODO complete me
+        Serie serie = buildSerie ? Serie.build() : null
 
         when: 'delete the serie'
-        //TODO complete me
+        Serie deletedSerie = service.delete(serie)
 
         then: 'the serie is deleted'
-        //TODO complete me
+        !deletedSerie
 
         where:
         buildSerie << [true, false]
     }
 
-    /*************************************
-            SERVICE UNIT EXERCISE 2
-     **************************************/
-    @Ignore("Until start work on service unit exercise 2")
     @Unroll
     void "Delete the serie cover"(){
         given: 'a file'
-        //TODO complete me
+        File cover = new File('sampleCover')
+        cover << 'content'
 
         when: 'build a serie with or without a path to file'
-        //TODO complete me
+        Serie serie = Serie.build(pathToCover: serieWithCover ? cover.absolutePath : null)
 
         then: 'the serie contains a cover'
-        //TODO complete me
+        serie.cover
 
         when: 'deletes the serie cover'
-        //TODO complete me
+        service.deleteCoverFile(serie)
 
         then: 'the serie is deleted'
-        //TODO complete me
+        !serie.pathToCover
+        serie.cover == new File('grails-app/assets/images/default-thumbnail.jpg')
 
         where:
         serieWithCover << [true, false]
     }
 
-    /*************************************
-            SERVICE UNIT EXERCISE 2
-     **************************************/
-    @Ignore("Until start work on service unit exercise 2")
     @Unroll
     void "save the serie cover"(){
         given: 'A multipartFile'
-        //TODO complete me
+        MultipartFile cover = new MockMultipartFile('image', 'myImage.jpg', 'image/jpeg', 123 as byte[])
 
         and: 'a new serie'
-        //TODO complete me
+        Serie serie = Serie.build()
 
         when: 'save the cover file to the file system'
-        //TODO complete me
+        Serie updatedSerie = service.saveCoverFile(sendCover ? cover : null, sendSerie ? serie : null)
 
         then: 'check if the returned serie contains the path to cover and the file to cover'
-        //TODO complete me
+        (updatedSerie != null) == serieUpdated
+        if(serieUpdated){
+            assert updatedSerie.pathToCover
+            assert updatedSerie.cover
+        }
 
         cleanup: 'delete the cover file'
-        //TODO complete me
+        if(serieUpdated) updatedSerie.cover.delete()
 
         where:
         sendCover | sendSerie || serieUpdated
@@ -112,24 +108,22 @@ class SerieServiceUnitSpec extends Specification {
         true      | true      || true
     }
 
-    /*************************************
-            SERVICE UNIT EXERCISE 3
-     **************************************/
-    @Ignore("Until start work on service unit exercise 3")
     @Unroll
     void "try to #method and throws an exception #exceptionThrown"(){
         given: 'the method to invoke overrided'
-        //TODO complete me
-
-        when: 'save or delete the cover file to/from the file system'
-        //TODO complete me
+        service.metaClass.saveCoverFile = {MultipartFile cover, Serie serie ->
+            throw exceptionThrown.newInstance('')
+        }
 
         service.metaClass.deleteCoverFile = {Serie serie ->
             throw exceptionThrown.newInstance('')
         }
 
+        when: 'save or delete the cover file to/from the file system'
+        service."$method"(methodArgs)
+
         then: 'the exception is thrown'
-        //TODO complete me
+        thrown(exceptionThrown)
 
         where:
         method            | methodArgs   | exceptionThrown
@@ -144,26 +138,33 @@ class SerieServiceUnitSpec extends Specification {
         'deleteCoverFile' | null         | Exception
     }
 
-    /*************************************
-            SERVICE UNIT EXERCISE 4
-     **************************************/
-    @Ignore("Until start work on service unit exercise 4")
     @Unroll
     void "save/update a serie"(){
         given: 'A multipartFile to simulate the cover image'
-        //TODO complete me
+        MultipartFile cover = new MockMultipartFile('image', 'myImage.jpg', 'image/jpeg', 123 as byte[])
 
         and: 'create three actors'
-        //TODO complete me
+        List<Actor> actors = []
+        3.times {
+            actors << Actor.build()
+        }
 
         when: 'save or update the serie'
-        //TODO complete me
+        Serie serieSaved = service.save(name, channel, releaseDate, sendCover ? cover : null, sendActors ? actors : null, serie)
 
         then: 'check if the serie is created and if its attributes fits with the data sent'
-        //TODO complete me
+        (serieSaved != null) == serieCreated
+        if(serieCreated){
+            assert serieSaved.name == name
+            assert serieSaved.channel == channel
+            assert serieSaved.releaseDate == releaseDate
+            if(sendCover) assert serieSaved.pathToCover
+            if(sendActors) assert serieSaved.actors
+        }
 
         cleanup: 'delete the actors and the created serie'
-        //TODO complete me
+        actors*.delete()
+        if(serieCreated) serieSaved.delete()
 
         where:
         name   | channel   | releaseDate | sendCover | sendActors | serie          || serieCreated

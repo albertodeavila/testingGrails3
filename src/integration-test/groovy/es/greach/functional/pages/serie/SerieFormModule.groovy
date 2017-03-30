@@ -21,5 +21,17 @@ package es.greach.functional.pages.serie
 import geb.Module
 
 class SerieFormModule extends Module {
-    //TODO complete me
+
+    static content = {
+        serieName { $('#name') }
+        serieChannel { $('#channel') }
+        serieReleaseDate { $('#releaseDate') }
+        serieActors { $('#actorsSearch') }
+        serieCover { $("[type='file']") }
+        serieSubmitButton { $("#serieSubmitButton") }
+        actorsFound (required: false) { $('.dropdown-menu a') }
+        spinner (required: false) { $('#spinner') }
+
+        validationErrorForField { String field -> $("#${field}-error").text().trim() }
+    }
 }

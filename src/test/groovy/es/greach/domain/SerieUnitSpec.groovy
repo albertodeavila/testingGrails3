@@ -20,7 +20,6 @@ package es.greach.domain
 
 import es.greach.Serie
 import grails.test.mixin.TestFor
-import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -31,20 +30,21 @@ class SerieUnitSpec extends Specification {
     @Shared String utilFolder = "src${File.separator}test${File.separator}groovy${File.separator}es${File.separator}greach${File.separator}util${File.separator}"
     @Shared String imagesFolder = "grails-app${File.separator}assets${File.separator}images${File.separator}"
 
-    /*************************************
-            DOMAIN UNIT EXERCISE 1
-     **************************************/
-    @Ignore("Until start work on domain unit exercise 1")
     @Unroll
     void "Validates a Series's instance that must be valid: #valid, with params: #params"() {
         given: 'a serie built with some params'
-        //TODO complete me
+        Serie serie = new Serie(params)
 
         expect: 'the serie is valid or not'
-        //TODO complete me
+        serie.validate() == valid
 
         and: 'and if it is valid, save it and check the params '
-        //TODO complete me
+        if(valid){
+            assert serie.save()
+            params.each{ String key, value ->
+                assert serie."$key" == value
+            }
+        }
 
         where:
         params                                                                                  || valid
@@ -66,23 +66,19 @@ class SerieUnitSpec extends Specification {
         [name: 'name', channel: 'channel', releaseDate: new Date(), pathToCover: 'pathToCover'] || true
     }
 
-    /*************************************
-            DOMAIN UNIT EXERCISE 2
-     **************************************/
-    @Ignore("Until start work on domain unit exercise 2")
     @Unroll
     void "Gets serie's cover"() {
         given: 'defines path cover'
-        //TODO complete me
+        domain.pathToCover = coverPath
 
         when: 'gets cover'
-        //TODO complete me
+        File cover = domain.getCover()
 
         then: 'resulted cover is as expected'
-        //TODO complete me
+        cover.path == resultPath
 
         where:
-        coverPath                   || resultPath
+        coverPath                                                                                                                                     || resultPath
         null                        || "${imagesFolder}default-thumbnail.jpg"
         "${utilFolder}test.jpg"     || "${utilFolder}test.jpg"
         "${utilFolder}noExists.jpg" || "${imagesFolder}default-thumbnail.jpg"

@@ -18,22 +18,45 @@
  */
 package es.greach.service
 
-import es.greach.UserService
+import es.greach.*
+import grails.buildtestdata.mixin.Build
+import grails.test.mixin.Mock
 import grails.test.mixin.TestFor
-import spock.lang.Ignore
+import org.springframework.context.MessageSource
 import spock.lang.Specification
 import spock.lang.Unroll
 
+@Mock([Role, UserRole])
+@Build([User])
 @TestFor(UserService)
 class UserServiceUnitSpec extends Specification {
 
-    /*************************************
-        SERVICE UNIT EXERCISE EXTRA 1
-     **************************************/
-    @Ignore("Until start work on service unit exercise extra 1")
+    void setupSpec() {
+        defineBeans {
+            sendMailService(SendMailService)
+        }
+    }
+
+    void setup() {
+        new Role(authority: 'ROLE_ADMIN').save()
+    }
+
     @Unroll
     void "Saves a user"() {
-        //TODO complete me
+        given: 'override messageSource to return some message'
+        service.messageSource = Mock(MessageSource)
+        service.messageSource.getMessage(_, _, _) >> "some message"
+
+        when: 'call the service to save the user'
+        User user = service.save(username, password, email, Locale.ENGLISH)
+
+        then: 'check if the user is saved and if it\'s, check the username and the email'
+        if(resultError) {
+            assert !user
+        }else{
+            assert user.username == username
+            assert user.email == email
+        }
 
         where:
         username   | password   | passwordConfirm | email       || resultError
@@ -44,21 +67,36 @@ class UserServiceUnitSpec extends Specification {
         'username' | 'password' | 'password'      | 'e@mail.me' || false
     }
 
-    /*************************************
-     SERVICE UNIT EXERCISE EXTRA 2
-     **************************************/
-    @Ignore("Until start work on service unit exercise extra 2")
     void "Delete a user"() {
-        //TODO complete me
+        given: 'build a user or not'
+        User user = buildUser ? User.build() : null
+
+        when: 'delete the user'
+        User deletedUser = service.delete(user)
+
+        then: 'if the user is built, enabled is false. If not, user does not exist '
+        if (buildUser) {
+            assert !deletedUser.enabled
+        } else {
+            assert !deletedUser
+        }
+
+        where:
+        buildUser << [true, false]
     }
 
-    /*************************************
-     SERVICE UNIT EXERCISE EXTRA 3
-     **************************************/
-    @Ignore("Until start work on service unit exercise extra 3")
-    @Unroll
     void "Spend user's purchased time"() {
-        //TODO complete me
+        given: 'build a user with specified purchased time'
+        User user = User.build(purchasedTime: purchasedTime)
+
+        and: 'creates an admin role whether an admin role needs to be created or not'
+        if (isAdmin) UserRole.create(user, Role.findByAuthority('ROLE_ADMIN'))
+
+        when: 'spends purchased time for the user'
+        User resultedUser = service.spendPurchasedTime(user)
+
+        then: 'resulted purchased time is as expected'
+        resultedUser.purchasedTime == resultedTime
 
         where:
         isAdmin | purchasedTime || resultedTime

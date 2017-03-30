@@ -18,8 +18,19 @@
  */
 package es.greach.functional.pages.serie
 
+import es.greach.functional.pages.utils.MessagesModule
 import geb.Page
+import grails.util.Holders
 
 class CreateSeriePage extends Page {
-    //TODO complete me
+    static url = "/serie/create"
+
+    static at = {
+        $("h1").text() == Holders.applicationContext.getBean("messageSource").getMessage("serie.create.label", null, null)
+    }
+
+    static content = {
+        form { module SerieFormModule }
+        messages { module MessagesModule}
+    }
 }

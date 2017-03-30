@@ -16,18 +16,28 @@
  * limitations under the License.
  *
  */
-package es.greach.functional.pages.serie
+package es.greach.functional.pages.episode
 
 import geb.Page
-import grails.util.Holders
 
-class EditSeriePage extends Page {
+class ShowEpisodePage extends Page{
 
     static at = {
-        $("h1").text() == Holders.applicationContext.getBean("messageSource").getMessage("serie.update.label", null, null)
+        $("h1.marginTop10").text() && $("[for='title']").isDisplayed()
     }
 
     static content = {
-        form { module SerieFormModule }
+
+        valueForLabel{ label-> $("[for='${label}'] + div p").text().trim() }
+
+        episodeTitle { valueForLabel('title') }
+        episodeSeason { valueForLabel('season') }
+        episodeNumber { valueForLabel('episodeNumber') }
+        episodeSummary (required: false) { valueForLabel('summary') }
+        episodeVideo { $('#video') }
+
+        editButton (required: false) { $("#editEpisodeButtonsDiv a:nth-child(1)")}
+        deleteButton (required: false) { $("#editEpisodeButtonsDiv a:nth-child(2)")}
     }
+
 }

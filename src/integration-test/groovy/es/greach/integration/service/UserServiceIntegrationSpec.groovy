@@ -18,16 +18,20 @@
  */
 package es.greach.integration.service
 
+import es.greach.Role
+import es.greach.User
+import es.greach.UserRole
 import es.greach.UserService
 import grails.plugin.greenmail.GreenMail
 import grails.test.mixin.integration.Integration
 import grails.transaction.Rollback
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
-import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import javax.mail.internet.MimeMessage
 
 @Integration
 @Rollback
@@ -37,17 +41,25 @@ class UserServiceIntegrationSpec extends Specification {
     @Autowired MessageSource messageSource
     @Shared GreenMail greenMail
 
-    /*************************************
-        SERVICE INTEGRATION EXERCISE 1
-     **************************************/
-    @Ignore("Until start work on service integration exercise 1")
     @Unroll
     void "Saves a user with username: #username password: #password email: #email and saved #saved"() {
         when: 'call to the service to save the user'
-        //TODO complete me
+        User user = userService.save(username, password, email, Locale.ENGLISH)
 
         then: 'check if the user is saved correctly and if the user receives an email'
-        //TODO complete me
+        if (saved) {
+            assert user.username == username
+            assert user.email == email
+            assert user.password != password
+
+            MimeMessage message = greenMail.latestMessage
+            assert 1 == greenMail.getReceivedMessages().length
+            assert message.to == email
+            assert message.subject == messageSource.getMessage('email.createUser.subject', null , Locale.ENGLISH)
+            assert message.content.contains(username)
+        } else {
+            assert !user
+        }
 
         where:
         username   | password   | email       || saved
@@ -58,29 +70,52 @@ class UserServiceIntegrationSpec extends Specification {
         'username' | 'password' | 'e@mail.me' || true
     }
 
-    /*************************************
-        SERVICE INTEGRATION EXERCISE 2
-     **************************************/
-    @Ignore("Until start work on service integration exercise 2")
     void "delete a user"(){
-        //TODO complete me
+        given: 'a user'
+        User user = User.build(username: UUID.randomUUID())
+
+        when: 'delete the user'
+        User deletedUser = userService.delete(user)
+
+        then: 'the service returns a user and its attribute enable is false'
+        deletedUser
+        !deletedUser.enabled
     }
 
-    /*************************************
-        SERVICE INTEGRATION EXERCISE 3
-     **************************************/
-    @Ignore("Until start work on service integration exercise 3")
     void "try to delete a user"(){
         expect: 'the service return null when this value is passed as user'
-        //TODO complete me
+        !userService.delete(null)
     }
 
-    /*************************************
-        SERVICE INTEGRATION EXERCISE 4
-     **************************************/
-    @Ignore("Until start work on service integration exercise 4")
     void "spend purchased time "(){
-        //TODO complete me
+        given: 'a purchased time'
+        Long purchasedTime = 50
+
+        and: 'a user'
+        User user = User.build(username: UUID.randomUUID(), purchasedTime: purchasedTime)
+
+        and: 'grant admin role to the user'
+        Role adminRole = Role.findOrSaveByAuthority('ROLE_ADMIN')
+        if(isAdminUser) UserRole.create(user, adminRole)
+
+        when: 'spend 5 seconds on the user purchased time'
+        User updatedUser = userService.spendPurchasedTime(sendUser ? user : null)
+
+        then: 'check the returned user'
+        if(sendUser){
+            assert updatedUser
+            if(isAdminUser) assert user.purchasedTime == updatedUser.purchasedTime
+            else assert updatedUser.purchasedTime == purchasedTime - 5
+        }else{
+            assert !updatedUser
+        }
+
+        where:
+        sendUser | isAdminUser
+        false    | false
+        true     | false
+        false    | true
+        true     | true
     }
 
     void cleanup() {

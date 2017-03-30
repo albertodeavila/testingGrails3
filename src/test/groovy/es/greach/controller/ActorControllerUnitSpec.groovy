@@ -19,34 +19,36 @@
 package es.greach.controller
 
 import es.greach.ActorController
+import es.greach.ActorService
+import grails.converters.JSON
 import grails.test.mixin.TestFor
-import spock.lang.Ignore
 import spock.lang.Specification
+
+import static org.springframework.http.HttpStatus.OK
+
 
 @TestFor(ActorController)
 class ActorControllerUnitSpec extends Specification {
 
-    /*************************************
-            CONTROLLER UNIT EXERCISE 1
-     **************************************/
-    @Ignore("Until start work on controller unit exercise 1")
     void "search actors by ajax"(){
         given: 'the data that the service will return'
-        //TODO complete me
+        Map data = [id: 1, name: 'Antonio Banderas']
 
         and: 'mock the service'
-        //TODO complete me
+        controller.actorService = Mock(ActorService)
+        controller.actorService.searchActorsByName(_) >> [status: OK.value(), data: data]
 
         and: 'a name'
-        //TODO complete me
+        String name = 'Antonio'
 
         and: 'send to the controller'
-        //TODO complete me
+        controller.params.query = name
 
-        when: 'call the action'
-        //TODO complete me
+        when: 'call to the action'
+        controller.searchActorsAjax()
 
-        then:  'check the response is the data as JSON'
-        //TODO complete me
+        then:  'check if the response is the data as JSON'
+        controller
+        JSON.parse(controller.response.contentAsString) == data
     }
 }

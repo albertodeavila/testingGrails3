@@ -18,50 +18,64 @@
  */
 package es.greach.domain
 
+import es.greach.Role
 import es.greach.User
+import es.greach.UserRole
+import grails.test.mixin.Mock
 import grails.test.mixin.TestFor
-import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 
+@Mock([UserRole, Role])
 @TestFor(User)
 class UserUnitSpec extends Specification{
 
-    /*************************************
-        DOMAIN UNIT EXERCISE EXTRA 1
-     **************************************/
-    @Ignore("Until start work on domain unit exercise extra 1")
     @Unroll
     void "Validates a user's instance that must be valid: #valid, with params: #params"(){
         given: 'a user built with some params'
-        //TODO complete me
+        User user = new User(params)
 
         expect: 'the serie is valid or not'
-        //TODO complete me
+        user.validate() == valid
 
         and: 'and if it is valid, save it and check the params '
-        //TODO complete me
+        if(valid){
+             assert user.save()
+             params.each{ String key, value->
+                 assert user."$key" == value
+             }
+        }
 
         where:
-        expectedValidate || params
-        null             || null
-        //TODO complete me
+        valid || params
+        false || [:]
+        false || [username: 'username']
+        false || [username: 'username', password: 'pass']
+        true  || [username: 'username', password: 'pass', email: 'email@sample.']
+        true  || [username: 'username', password: 'pass', email: 'email@sample.d']
+        true  || [username: 'username', password: 'pass', email: 'email@sample.com']
+        true  || [username: 'username', password: 'pass', email: 'email@sample.com']
+        true  || [username: 'username', password: 'pass', email: 'email@sample.com', purchasedTime: 50]
+        true  || [username: 'username', password: 'pass', email: 'email@sample.com', purchasedTime: 50, enabled: false]
+        true  || [username: 'username', password: 'pass', email: 'email@sample.com', purchasedTime: 50, enabled: false, accountExpired: true]
+        true  || [username: 'username', password: 'pass', email: 'email@sample.com', purchasedTime: 50, enabled: false, accountExpired: true]
+        true  || [username: 'username', password: 'pass', email: 'email@sample.com', purchasedTime: 50, enabled: false, accountExpired: true, accountLocked: true]
+        true  || [username: 'username', password: 'pass', email: 'email@sample.com', purchasedTime: 50, enabled: false, accountExpired: true, accountLocked: true, passwordExpired: true]
     }
 
-    /*************************************
-        DOMAIN UNIT EXERCISE EXTRA 2
-     **************************************/
-    @Ignore("Until start work on domain unit exercise extra 2")
     @Unroll
     void "check if a user is admin: #expectedIsAdmin"(){
         given: 'a new user'
-        //TODO complete me
+        User user = new User(username: 'username', password: 'pass', email: 'email@sample.com').save()
 
         and: 'grant to the user the ROLE_ADMIN role'
-        //TODO complete me
+        if(expectedIsAdmin){
+            Role adminRole = new Role(authority: 'ROLE_ADMIN').save()
+            UserRole.create user, adminRole
+        }
 
         expect: 'check if the user is admin as we expect'
-        //TODO complete me
+        user.isAdmin() == expectedIsAdmin
 
         where:
         expectedIsAdmin << [false, true]

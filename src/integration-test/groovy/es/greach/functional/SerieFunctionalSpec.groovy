@@ -18,10 +18,14 @@
  */
 package es.greach.functional
 
+import es.greach.Serie
+import es.greach.functional.pages.serie.CreateSeriePage
+import es.greach.functional.pages.serie.EditSeriePage
+import es.greach.functional.pages.serie.IndexSeriePage
+import es.greach.functional.pages.serie.ShowSeriePage
 import es.greach.functional.utils.FunctionalTest
 import grails.test.mixin.integration.Integration
 import grails.transaction.Rollback
-import spock.lang.Ignore
 import spock.lang.Stepwise
 import spock.lang.Unroll
 
@@ -30,59 +34,73 @@ import spock.lang.Unroll
 @Stepwise
 class SerieFunctionalSpec extends FunctionalTest {
 
-    /*************************************
-            FUNCTIONAL EXERCISE 1
-     **************************************/
-    @Ignore("Until start work on functional exercise 1")
     void 'Creates a serie'() {
         given: 'login as an admin'
-        //TODO complete me
+        loginAs('admin', '1234')
 
         when: 'go to create serie page'
-        //TODO complete me
+        to CreateSeriePage
 
         and: 'fill serie form'
-        //TODO complete me
+        String name = 'Westworld'
+        String channel = 'HBO'
+        String date = new Date().format('MM/dd/yyyy')
+        String actorName = 'Antonio'
+
+        form.serieName = name
+        form.serieChannel = channel
+        form.serieActors = actorName
+        waitFor {
+            !form.spinner.isDisplayed() && form.actorsFound
+        }
+        form.actorsFound.first().click()
+        form.serieReleaseDate = date
+        form.serieCover = new File('src/integration-test/groovy/es/greach/functional/utils/media/westworld.jpg').absolutePath
 
         and: 'submit the serie form'
-        //TODO complete me
+        js.exec("\$('#serieForm').submit()")
 
         then: 'the index serie page is shown'
-        //TODO complete me
+        at IndexSeriePage
 
         and: 'a success message appear'
-        //TODO complete me
+        messages.successMessage == messageSource.getMessage('serie.save.ok', [name].toArray(), null).trim()
 
         and: 'there is a serie with the name'
-        //TODO complete me
+        serieWithName(name)
 
         when: 'click in the serie link'
-        //TODO complete me
+        js.exec("\$(\"[name='${name}']\")[0].click()")
 
         then: 'the show page is shown'
-        //TODO complete me
+        at ShowSeriePage
 
-        and: 'check the values saved are shown'
-        //TODO complete me
+        and: 'check that the saved values are shown'
+        serieName == name
+        serieChannel == channel
+        serieReleaseDate == date
+        cover
+        actors.find{ it.contains(actorName) }
     }
 
-    /*************************************
-            FUNCTIONAL EXERCISE 2
-     **************************************/
-    @Ignore("Until start work on functional exercise 2")
     @Unroll
     void "try to save a serie without required params"(){
         when: 'go to create serie page'
-        //TODO complete me
+        to CreateSeriePage
 
         and: 'fill serie form'
-        //TODO complete me
+        form.serieName = name
+        form.serieChannel = channel
+        form.serieReleaseDate = releaseDate
 
         and: 'click on the serie submit button'
-        //TODO complete me
+        form.serieSubmitButton.click()
 
         then: 'we are in the create serie page'
-        //TODO complete me
+        at CreateSeriePage
+        fieldErrors.each { String fieldError ->
+            assert form.validationErrorForField(fieldError) == 'This field is required.'
+        }
 
         where:
         name | channel | releaseDate                     || fieldErrors
@@ -95,120 +113,119 @@ class SerieFunctionalSpec extends FunctionalTest {
         ''   | ''      | new Date().format('MM/dd/yyyy') || ['name', 'channel']
     }
 
-    /*************************************
-        FUNCTIONAL EXERCISE 3
-     **************************************/
-    @Ignore("Until start work on functional exercise 3")
     void "try to show a serie that doesn't exists"(){
         when: 'go to show page that doesn\'t exists'
-        //TODO complete me
+        go("/serie/show?serieId=-1")
 
         then: 'the index serie is shown'
-        //TODO complete me
+        at IndexSeriePage
 
         and: 'an error message appears'
-        //TODO complete me
+        messages.errorMessage == messageSource.getMessage('serie.show.notExists', null, null).trim()
     }
 
-    /*************************************
-     FUNCTIONAL EXERCISE 4
-     **************************************/
-    @Ignore("Until start work on functional exercise 4")
     void "try to show a serie without sending serieId"(){
-        when: 'go to show serie page'
-        //TODO complete me
+        when:  'go to show serie page'
+        go("/serie/show?serieId=")
 
         then: 'the index serie is shown'
-        //TODO complete me
+        at IndexSeriePage
 
         and: 'an error message appear'
-        //TODO complete me
+        messages.errorMessage == messageSource.getMessage('serie.show.notFound', null, null)
     }
 
-    /*************************************
-            FUNCTIONAL EXERCISE 4
-     **************************************/
-    @Ignore("Until start work on functional exercise 4")
     void "show a serie"(){
-        given: 'a new serie'
-        //TODO complete me
+        given: 'a serie is created'
+        Serie serie
+        Serie.withNewSession { session ->
+            serie = Serie.build(name: UUID.randomUUID().toString())
+        }
 
         when: 'go to show page'
-        //TODO complete me
+        go("/serie/show?serieId=${serie.id}")
 
         then: 'the show page is present'
-        //TODO complete me
+        at ShowSeriePage
 
         and: 'check that the values saved are shown'
-        //TODO complete me
+        serieName == serie.name
+        serieChannel == serie.channel
+        serieReleaseDate == serie.releaseDate.format('MM/dd/yyyy')
     }
 
-    /*************************************
-            FUNCTIONAL EXERCISE 5
-     **************************************/
-    @Ignore("Until start work on functional exercise 5")
     void "delete a serie"(){
-        given: 'a new serie'
-        //TODO complete me
+        given: 'a serie is created'
+        Serie serie
+        Serie.withNewSession { session->
+            serie = Serie.build(name: UUID.randomUUID().toString())
+        }
 
         when: 'go to show serie page'
-        //TODO complete me
+        go("/serie/show?serieId=${serie.id}")
 
         then: 'we are at show serie page'
-        //TODO complete me
+        at ShowSeriePage
 
         when: 'click on the delete button'
-        //TODO complete me
+        deleteButton.click()
 
         then: 'the index serie page is shown'
-        //TODO complete me
+        at IndexSeriePage
 
         and: 'a success message appear'
-        //TODO complete me
+        messages.successMessage == messageSource.getMessage('serie.delete.ok', [serie.name].toArray(), null)
     }
 
-    /*************************************
-            FUNCTIONAL EXERCISE 6
-     **************************************/
-    @Ignore("Until start work on functional exercise 6")
     void "update a serie"(){
-        given: 'a new serie'
-        //TODO complete me
+        given: 'a serie is created'
+        Serie serie
+        Serie.withNewSession { session->
+            serie = Serie.build(name: UUID.randomUUID().toString())
+        }
 
         when: 'go to show serie page'
-        //TODO complete me
+        go("/serie/show?serieId=${serie.id}")
 
         then: 'we are at show serie page'
-        //TODO complete me
+        at ShowSeriePage
 
         when: 'click on the update button'
-        //TODO complete me
+        editButton.click()
 
         then: 'the edit serie page is shown'
-        //TODO complete me
+        at EditSeriePage
 
         when: 'change the form values'
-        //TODO complete me
+        String name = 'Westworld 2'
+        String channel = 'HBO'
+        String date = new Date().format('MM/dd/yyyy')
+
+        form.serieName = name
+        form.serieChannel = channel
+        form.serieReleaseDate = date
 
         and: 'click on save button'
-        //TODO complete me
+        form.serieSubmitButton.click()
 
         then: 'the index serie page is shown'
-        //TODO complete me
+        at IndexSeriePage
 
-        and: 'a success message appear'
-        //TODO complete me
+        and: 'a success message appears'
+        messages.successMessage == messageSource.getMessage('serie.save.ok', [name].toArray(), null).trim()
 
         and: 'there is a serie with the name'
-        //TODO complete me
+        serieWithName(name)
 
         when: 'click in the serie link'
-        //TODO complete me
+        js.exec("\$(\"[name='${name}']\")[0].click()")
 
         then: 'the show page is shown'
-        //TODO complete me
+        at ShowSeriePage
 
         and: 'check that the values saved are shown'
-        //TODO complete me
+        serieName == name
+        serieChannel == channel
+        serieReleaseDate == date
     }
 }

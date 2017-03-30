@@ -18,6 +18,7 @@
  */
 package es.greach.functional.pages.serie
 
+import es.greach.functional.pages.utils.MessagesModule
 import geb.Page
 import grails.util.Holders
 
@@ -29,6 +30,10 @@ class IndexSeriePage extends Page {
     }
 
     static content = {
-        //TODO complete me
+        messages (required: false) { module MessagesModule }
+        createSerieButton (required: false) { $(".btn-success") }
+        seriesAvailable (required: false) { $(".thumbnail") }
+        serieWithName (required: false) { name -> seriesAvailable.find(text: name) }
+        serieLinkWithName (required: false) { name -> $("[name='${name}']") }
     }
 }
